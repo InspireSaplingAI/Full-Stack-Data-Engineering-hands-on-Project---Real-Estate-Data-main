@@ -1,0 +1,8 @@
+ops:
+  emit_cities:
+    config:
+      cities:
+        - "San Francisco"
+        - "Los Angeles"
+        - "San Diego"
+      state: "CA"

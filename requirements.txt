@@ -1,0 +1,17 @@
+#dagster dependencies
+dagster==1.5.1
+dagster-pandas==0.21.1
+dagstermill
+dagster-aws==0.21.1
+dagster-postgres==0.21.1
+dagster-spark==0.21.1
+dagster-pyspark==0.21.1
+dagster-webserver
+#my additional requirement
+#docker-compose==1.23.2
+pyspark
+pyarrow
+pandas
+boto3
+pandasql
+pyyaml
