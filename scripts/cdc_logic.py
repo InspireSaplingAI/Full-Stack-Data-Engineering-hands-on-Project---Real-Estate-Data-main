@@ -7,10 +7,13 @@ import pandasql as ps
 from typing import List, Dict
 import os
 from datetime import datetime
+from typing import Tuple
+
 
 # Type alias for clarity
 PropertyDataFrame = List[Dict]
-def cdc_logic(csv_file_path: str) -> (str, List[Dict]):
+
+def cdc_logic(csv_file_path: str) -> Tuple[str, List[Dict]]:
     """
     Reads the incoming scraped properties from a CSV file, compares with existing properties,
     and returns a list of new or changed properties.
@@ -27,11 +30,16 @@ def cdc_logic(csv_file_path: str) -> (str, List[Dict]):
 
     # Derive the processed file path
     filename = os.path.basename(csv_file_path)
-    processed_path = os.path.join('processed', filename)
+    processed_path = os.path.join('data/processed', filename.replace('.csv', '.parquet'))
+    # Ensure the processed directory exists
+    os.makedirs(os.path.dirname(processed_path), exist_ok=True)
 
     # If processed file does not exist, treat all as new
     if not os.path.exists(processed_path):
-        return incoming_df.to_dict(orient="records")
+        incoming_df.to_parquet(processed_path, engine='pyarrow', index=False)
+        changed_props = incoming_df.to_dict(orient="records")
+        # If no processed file exists, all incoming properties are considered new
+        return (processed_path, changed_props)
 
     # Read existing properties
     existing_df = pd.read_parquet(processed_path)
@@ -63,18 +71,38 @@ def get_new_or_changed_properties(
     Returns:
         List of new or changed property dicts.
     """
-    if not properties:
+    if properties.empty:
         return []
 
     ###
-    # to do: Implement CDC logic to compare incoming properties against existing ones
+    # Implement CDC logic using pandasql to compare incoming properties against existing ones
+    # Only consider change if Price or Status is different for a given Location
+
+    # Ensure columns are consistent and handle missing columns gracefully
+    required_cols = ['Location', 'Status', 'Price']
+    for col in required_cols:
+        if col not in properties.columns or col not in property_table.columns:
+            raise ValueError(f"Missing required column: {col}")
+
+    # Use pandasql to find new or changed properties
+    query = """
+        SELECT p.*
+        FROM properties p
+        LEFT JOIN property_table e
+            ON p.Location = e.Location
+        WHERE e.Location IS NULL
+           OR p.Price != e.Price
+           OR p.Status != e.Status
+    """
+    df_changed = ps.sqldf(query, locals())
     # Query the existing `property_table` to extract existing fingerprints
     # You can use this example SQL query:
-    # query = f"""
-    #     SELECT propertyDetails_propertyId,
-    #            CAST(propertyDetails_propertyId AS STRING) || '-' || propertyDetails_normalizedPrice AS fingerprint
+    # Query the existing `property_table` to extract existing fingerprints
+    # Example (not used in main logic, but for reference):
+    # query = """
+    #     SELECT Location,
+    #            CAST(Location AS TEXT) || '-' || CAST(Price AS TEXT) AS fingerprint
     #     FROM property_table
-    #     WHERE propertyDetails_propertyId IN ({ids})
     # """
     # result_df = ps.sqldf(query, locals())
 
@@ -91,3 +119,6 @@ def get_new_or_changed_properties(
 
     # Convert the final result (df_changed) to parquet and return it
     return df_changed.to_dict(orient="records")
+
+-if __name__ == "__main__":
+    cdc_logic("data/raw/Stockton_CA_real_estate.csv")
