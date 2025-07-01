@@ -15,10 +15,39 @@ def scrape_real_estate_data(city, state):
 
     raw_file_path = f"data/raw/{city}_{state}_real_estate.csv"
     ###
-    # to do: Extract property details from the soup object
+    # Extract property details from the soup object
     # save dataframe to csv file
     # Add datetime_collected column to incoming data
     ###
+    lists = soup.find_all('div', class_="jsx-2775064451 fallBackImgWrap")
 
-    
-    return raw_file_path
+    with open(raw_file_path, 'w', encoding='utf8', newline='') as f:
+        thewriter = writer(f)
+        header = ['Location', 'Status', 'Price', 'Owner', 'Bed', 'Bath', 'SQFT', 'SQFT_LOT']
+        thewriter.writerow(header)
+        for list in lists:
+            if list != None:
+                location = list.find('div', class_="jsx-1982357781 address ellipsis srp-page-address srp-address-redesign")
+                price = list.find('span', class_="Price__Component-rui__x3geed-0 gipzbd")
+                status = list.find('span', class_="jsx-3853574337 statusText")
+                ow = list.find_all('span', class_="jsx-287440024")
+                owner = ow[1]
+                infos = list.find_all('span', class_="jsx-946479843 meta-value")
+                for i in range(len(infos)):
+                    infos[i] = infos[i].text if infos[i] != None else 'Not specified'
+                location = location.text if location != None else 'Not specified'
+                price = price.text if price != None else 'Not specified'
+                owner = owner.text if owner != None else 'Not specified'
+                status = status.text if status != None else 'Not specified'
+                info = [location, status, price, owner]
+                for i in range(len(infos)):
+                    info.append(infos[i])
+                if len(infos) < 4:
+                    for i in range(len(infos), 4):
+                        info.append("NoV")
+                thewriter.writerow(info)
+        
+        return raw_file_path
+
+if __name__ == "__main__":
+    scrape_real_estate_data("Stockton", "CA")

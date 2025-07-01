@@ -14,4 +14,5 @@ pyarrow
 pandas
 boto3
 pandasql
+beautifulsoup4
 pyyaml
