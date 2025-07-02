@@ -13,6 +13,7 @@ pyspark
 pyarrow
 pandas
 boto3
+botocore
 pandasql
 beautifulsoup4
 pyyaml

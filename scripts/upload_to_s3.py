@@ -1,5 +1,9 @@
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config.s3_config import S3_CONFIG
 
 def save_to_s3_minio(
     data: bytes,
@@ -30,7 +34,8 @@ def save_to_s3_minio(
             endpoint_url=minio_endpoint,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
-            region_name="us-east-1",
+            config=boto3.session.Config(signature_version="s3v4"),
+            region_name="us-east-1"  # MinIO ignores region, but boto3 requires it
         )
 
         # Ensure the bucket exists (optional: remove if bucket is guaranteed to exist)
@@ -57,3 +62,20 @@ def upload_to_s3(filtered_path, city, state):
     # to_do: take the filtered_path and upload it to MinIO S3 bucket
     # use config/s3_config.py
     ###
+    with open(filtered_path, "rb") as f:
+        data = f.read()
+
+    s3_key = f"new/{city}/{state}/{filtered_path.split('/')[-1]}"
+
+    save_to_s3_minio(
+        data=data,
+        bucket_name=S3_CONFIG["S3_BUCKET_NAME"],
+        object_key=s3_key,
+        minio_endpoint=S3_CONFIG["S3_ENDPOINT_URL"],
+        access_key=S3_CONFIG["S3_ACCESS_KEY_ID"],
+        secret_key=S3_CONFIG["S3_SECRET_ACCESS_KEY"],
+        content_type="application/octet-stream"
+    )
+
+if __name__ == "__main__":
+    upload_to_s3("data/processed/Stockton_CA_real_estate.parquet", "Stockton", "CA")

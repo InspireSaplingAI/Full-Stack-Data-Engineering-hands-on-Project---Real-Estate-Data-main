@@ -120,5 +120,5 @@ def get_new_or_changed_properties(
     # Convert the final result (df_changed) to parquet and return it
     return df_changed.to_dict(orient="records")
 
--if __name__ == "__main__":
+if __name__ == "__main__":
     cdc_logic("data/raw/Stockton_CA_real_estate.csv")
