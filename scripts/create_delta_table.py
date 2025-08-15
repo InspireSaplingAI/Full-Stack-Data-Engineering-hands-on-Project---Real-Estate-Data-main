@@ -14,7 +14,7 @@ DeltaCoordinate = Dict[str, str]
 
 def reading_delta_table(context: OpExecutionContext, path: str, fs: s3fs.S3FileSystem) -> Tuple[pd.DataFrame, DeltaTable]:
     """
-    TODO: Read an existing Delta table from the given S3 path.
+    Read an existing Delta table from the given S3 path.
 
     If it doesn't exist yet, return an empty DataFrame and None.
     """
@@ -37,7 +37,7 @@ def reading_delta_table(context: OpExecutionContext, path: str, fs: s3fs.S3FileS
 
 def merge_property_delta(context: OpExecutionContext, input_dataframe: pd.DataFrame, fs: s3fs.S3FileSystem) -> DeltaCoordinate:
     """
-    TODO: Merge incoming property data into the Delta table based on propertyDetails_propertyId.
+    Merge incoming property data into the Delta table based on propertyDetails_propertyId.
 
     Steps:
     1. Define the Delta table path and metadata.
@@ -90,10 +90,10 @@ def merge_property_delta(context: OpExecutionContext, input_dataframe: pd.DataFr
 
 def create_delta_table():
     ###
-    # to do: read from S3 all incoming data (parqeut file) and merge_property_delta for all the dataframe 
+    # read from S3 all incoming data (parquet file) and merge_property_delta for all the dataframe
     # reading from parquet
-    # how to read multiple parquet files in parrele and update the same table in delta lake?
-    
+    # how to read multiple parquet files in parallel and update the same table in delta lake?
+
     ###
     prefix = "new"
     s3_bucket = S3_CONFIG["S3_BUCKET_NAME"]
