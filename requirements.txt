@@ -17,3 +17,6 @@ botocore
 pandasql
 beautifulsoup4
 pyyaml
+deltalake
+s3fs
+
